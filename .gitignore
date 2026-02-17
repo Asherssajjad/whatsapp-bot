@@ -1,0 +1,48 @@
+# Env and secrets
+.env
+.env.local
+.env.*.local
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+ENV/
+
+# Node
+node_modules/
+npm-debug.log*
+dist/
+build/
+.vite/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite3
+
+# Alembic (keep versions, ignore env.py local edits if any)
+# alembic/versions/*.py is tracked
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
