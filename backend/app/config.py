@@ -2,14 +2,33 @@
 Application configuration loaded from environment variables.
 Used for database, JWT, WhatsApp, OpenAI, and email settings.
 """
+import os
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 from typing import List
 
 
+def _get_database_url() -> str:
+    """Railway may expose PostgreSQL as DATABASE_URL, DATABASE_PRIVATE_URL, or POSTGRES_URL."""
+    for name in ("DATABASE_URL", "DATABASE_PRIVATE_URL", "POSTGRES_URL"):
+        val = os.environ.get(name)
+        if val and not val.strip().startswith("$"):  # skip unresolved refs like ${{Postgres.DATABASE_URL}}
+            return val
+    return "postgresql+asyncpg://localhost/whatsapp_saas"
+
+
 class Settings(BaseSettings):
-    # Database (Railway sets DATABASE_URL)
+    # Database (Railway: add reference to PostgreSQL → DATABASE_URL or DATABASE_PRIVATE_URL)
     database_url: str = "postgresql+asyncpg://localhost/whatsapp_saas"
     sync_database_url: str | None = None  # Optional; if unset, derived from database_url
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def resolve_database_url(cls, v: str | None) -> str:
+        resolved = _get_database_url()
+        if "localhost" not in resolved and "127.0.0.1" not in resolved:
+            return resolved
+        return v or resolved
 
     @property
     def sync_database_url_resolved(self) -> str:
