@@ -2,13 +2,25 @@
 WhatsApp Auto-Reply SaaS - FastAPI application.
 Run: uvicorn app.main:app --reload
 """
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.api import auth, webhook, conversations, leads, settings as settings_api, notifications, admin, accounts
+from app.core.ensure_admin import ensure_admin_from_env
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: create admin from ADMIN_EMAIL / ADMIN_PASSWORD if set
+    await ensure_admin_from_env()
+    yield
+    # Shutdown (if needed later)
+
 
 app = FastAPI(
+    lifespan=lifespan,
     title="WhatsApp Auto-Reply SaaS",
     description="Multi-user WhatsApp bot with conversation flow and lead capture",
     version="1.0.0",

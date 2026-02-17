@@ -42,6 +42,10 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: str = "http://localhost:3000"
 
+    # Optional: create admin on startup if set (e.g. ADMIN_EMAIL=ashersajjad98@gmail.com, ADMIN_PASSWORD=yourpass)
+    admin_email: str = ""
+    admin_password: str = ""
+
     @property
     def cors_origins_list(self) -> List[str]:
         return [o.strip() for o in self.cors_origins.split(",")]

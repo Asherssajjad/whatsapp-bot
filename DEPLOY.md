@@ -51,9 +51,7 @@ Railway gives a **trial with $5 credit** (no free tier anymore). You may need to
 
 1. Click the **backend** service (the one from the repo, not the database).
 2. **Settings**:
-   - **Root Directory**: set to `backend` (so Railway builds and runs from the `backend` folder).
-   - **Start Command** (if not auto-detected):  
-     `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - **Root Directory**: set to `backend`. The repo has a **Dockerfile** in `backend/` so Railway uses Docker (avoids Railpack build errors). No need to set Start Command.
 3. **Variables** (Settings → Variables, or the “Variables” tab):
    - Railway will add `DATABASE_URL` when you connect the DB. **Connect the PostgreSQL service** to this backend service: in the backend service, **Variables** → **Add variable** → **Add reference** → choose `DATABASE_URL` from the PostgreSQL service. So you don’t need to copy the URL; Railway injects it.
    - Add these yourself:
@@ -63,7 +61,9 @@ Railway gives a **trial with $5 credit** (no free tier anymore). You may need to
    | `SECRET_KEY`        | Long random string (e.g. from `openssl rand -hex 32`) |
    | `WHATSAPP_VERIFY_TOKEN` | Any string you’ll use in Meta webhook verification |
    | `APP_URL`           | Your backend URL (see below) |
-   | `CORS_ORIGINS`      | Your frontend URL, e.g. `https://your-frontend.up.railway.app` (update after deploying frontend) |
+   | `CORS_ORIGINS`      | Your frontend URL, or `*` to allow all (for testing) |
+   | `ADMIN_EMAIL`       | Admin login email, e.g. `ashersajjad98@gmail.com` |
+   | `ADMIN_PASSWORD`    | Admin login password (strong password) |
    | `OPENAI_API_KEY`    | (Optional) Your OpenAI key for AI fallback |
 
 4. **Connect PostgreSQL to backend**: In the backend service, **Variables** → **New Variable** → **Add Reference** → select the PostgreSQL service and `DATABASE_URL`. This fills `DATABASE_URL` automatically.
@@ -73,17 +73,11 @@ Railway gives a **trial with $5 credit** (no free tier anymore). You may need to
    ```
    Or add a **Deploy** or **Build** step that runs migrations (e.g. in a custom start script that runs `alembic upgrade head` then `uvicorn ...`).
 
-### Run migrations on deploy (recommended)
+### Migrations and admin user
 
-So migrations run automatically on each deploy, the repo includes `backend/run.sh`.
+The Docker image runs `run.sh`, which runs **migrations** (`alembic upgrade head`) then starts the app. No extra step needed.
 
-In Railway backend service **Settings** → **Start Command**, set:
-
-```bash
-sh run.sh
-```
-
-This runs `alembic upgrade head` then starts uvicorn.
+If you set **ADMIN_EMAIL** and **ADMIN_PASSWORD**, the app creates an **admin user** on first startup (or ensures one exists). Use that email and password to log in and open the Admin dashboard.
 
 3. Generate domain: **Settings** → **Networking** → **Generate Domain**. Copy the URL (e.g. `https://your-backend.up.railway.app`) and set:
    - `APP_URL` = that URL
