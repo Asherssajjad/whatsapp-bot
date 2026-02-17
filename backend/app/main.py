@@ -13,7 +13,16 @@ from app.core.ensure_admin import ensure_admin_from_env
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: create admin from ADMIN_EMAIL / ADMIN_PASSWORD if set
+    # Fail fast if DATABASE_URL is missing or still localhost (e.g. on Railway)
+    if "localhost" in settings.database_url or "127.0.0.1" in settings.database_url:
+        import os
+        if os.environ.get("PORT"):  # Railway sets PORT
+            raise RuntimeError(
+                "DATABASE_URL is not set or still points to localhost. "
+                "In Railway: Variables → Add Variable → Add Reference → select PostgreSQL → DATABASE_URL. "
+                "See RAILWAY_VARIABLES.md in the repo."
+            )
+    # Create admin from ADMIN_EMAIL / ADMIN_PASSWORD if set
     await ensure_admin_from_env()
     yield
     # Shutdown (if needed later)
